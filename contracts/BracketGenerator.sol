@@ -33,10 +33,13 @@ contract BracketGenerator {
    }
 
    function getTournamentMatchups(string memory name, address owner) public view returns(Match[] memory) {
-      Match[] memory matches = new Match[](db[owner][name].visible);
-      for(uint i=0;i<db[owner][name].visible;i++)
+      Match[] memory matches = new Match[]((db[owner][name].initial*2)-1);
+      for(uint i=0;i<(db[owner][name].initial*2)-1;i++)
       {
-         Match storage member = db[owner][name].matchups[i];
+
+         Match memory member= Match(0,0,0);
+         if(i<db[owner][name].visible)
+            member = db[owner][name].matchups[i];
          matches[i]=member;
       }
       return matches;
@@ -53,7 +56,7 @@ contract BracketGenerator {
         public
     {
       Bracket storage newBracket = db[msg.sender][name];
-      uint256 i=0;
+      uint256 i;
       uint256 preskipped;
        for (i = 2; i < teams.length; i *= 2) {}
         newBracket.initial = i / 2;
@@ -67,20 +70,20 @@ contract BracketGenerator {
          
          if(j<preskipped)
          {
-            newBracket.matchups[j].teama=i+1;
+            newBracket.matchups[j].teama=j+1;
             newBracket.matchups[j].teamb=0;
-            newBracket.matchups[j].winner=i+1;
+            newBracket.matchups[j].winner=j+1;
 
             if(newBracket.matchups[(j/2)+newBracket.initial].teama==0)
-               newBracket.matchups[(j/2)+newBracket.initial].teama=j;
+               newBracket.matchups[(j/2)+newBracket.initial].teama=j+1;
             else
-               newBracket.matchups[(j/2)+newBracket.initial].teamb=j;
+               newBracket.matchups[(j/2)+newBracket.initial].teamb=j+1;
          }
          else {
             if(newBracket.matchups[((j-preskipped)/2)+preskipped].teama==0)
-               newBracket.matchups[((j-preskipped)/2)+preskipped].teama=j;
+               newBracket.matchups[((j-preskipped)/2)+preskipped].teama=j+1;
             else
-               newBracket.matchups[((j-preskipped)/2)+preskipped].teamb=j;
+               newBracket.matchups[((j-preskipped)/2)+preskipped].teamb=j+1;
          }
 
       }
@@ -108,6 +111,7 @@ contract BracketGenerator {
                 i = i - j;
                 j = j / 2;
             }
+            k=k+j;
             uint256 nextId = i / 2 + k;
             if (db[msg.sender][tName].matchups[nextId].teama == 0) {
                db[msg.sender][tName].visible++;
@@ -118,6 +122,5 @@ contract BracketGenerator {
         } else {
             db[msg.sender][tName].winner = winner;
         }
-        db[msg.sender][tName].visible++;
     }
 }
